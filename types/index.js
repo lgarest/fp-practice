@@ -54,7 +54,7 @@ const test = msg => (f, j) => res => (...args) => {
     String(result1) === String(res) && String(result2) === String(res)
   success
     ? successFn(testCounter, msg)
-    : errorFn(testCounter, msg, result1, result2, res) || process.exit(1)
+    : errorFn(testCounter, msg, result1, result2, res)
 }
 
 const fromNullable = (x, err) => (x != null ? Right(x) : Left(err))
