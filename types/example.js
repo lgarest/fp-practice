@@ -234,6 +234,6 @@ const doubleEmphatize = x =>
 
 test("Fn works")(emphatize, () => "HOLA!")("HOLA!")("hola")
 test("Fn doubleEmphatize works")(doubleEmphatize, () => "LAhola!")("LAhola!")(
-  "hola"
+  "this tests will fail"
 )
 
