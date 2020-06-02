@@ -2,7 +2,11 @@
 
 ![Node.js CI](https://github.com/lgarest/fp-practice/workflows/Node.js%20CI/badge.svg)
 
-This project gathers fp practices seen across some online courses/books
+## IMPORTANT: _This project is for educational purposes only_
+
+This project gathers FP practices and simple structures seen across some online functional programming courses/books.
+
+The aim of the project is to understand FP in js beyond the typical `.filter`, `.map` and `.reduce` Array methods
 
 Install dependencies
 
