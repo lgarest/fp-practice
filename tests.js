@@ -222,6 +222,8 @@ const _startApp = cfg => {
       )
 }
 
+// --- Fn ---
+// Fn can be used as the reader monad
 const toUpperCase = x => x.toUpperCase()
 const exclamation = x => x.concat("!")
 const emphatize = x => Fn(toUpperCase).map(exclamation).run(x)
@@ -246,6 +248,16 @@ const fnMultipleArgs = (x, y) =>
     )
     .run(y)
 
+const fnMultipleArgs2 = (x, y) =>
+  Fn.of(x)
+    .map(toUpperCase)
+    .chain(upper =>
+      Fn.ask.map(
+        config => `${upper} ${toUpperCase(config.host)}:${config.port}`
+      )
+    )
+    .run(y)
+
 test("Fn works")(emphatize, _emphatize)("HOLA!")("hola")
 test("Fn doubleEmphatize works")(doubleEmphatize, () => "LAhola!")("LAhola!")(
   "hola"
@@ -254,10 +266,9 @@ test("Fn propagates the original value")(_emphatize2, () => ["HOLA!", "hola"])([
   "HOLA!",
   "hola",
 ])("hola")
-test("Fn can handle two arguments")(
-  fnMultipleArgs,
-  () => "APP RUNNING IN LOCALHOST:5000"
-)("APP RUNNING IN LOCALHOST:5000")("app running in", {
+test("Fn can handle two arguments")(fnMultipleArgs, fnMultipleArgs2)(
+  "APP RUNNING IN LOCALHOST:5000"
+)("app running in", {
   host: "localhost",
   port: 5000,
 })

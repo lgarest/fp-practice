@@ -73,6 +73,7 @@ const Fn = run => ({
   map: f => Fn(x => f(run(x))),
   concat: other => Fn(x => run(x).concat(other.run(x))),
 })
+Fn.ask = Fn(x => x)
 Fn.of = x => Fn(() => x)
 
 const types = {
