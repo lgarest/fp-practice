@@ -213,27 +213,51 @@ test("parseDBUrl fails gracefully")(parseDBUrl, _parseDBUrl)("null")(
   '{"no_url":"postgres://otheruser:muppets@localhost:5432/mybd"}'
 )
 
-const startApp = cfg => {
+const _startApp = cfg => {
   const parsed = parseDBUrl(cfg)
-  if (parsed) {
-    const [_, user, password, db] = parsed
-    return `starting ${db}, ${user}, ${password}`
-  } else {
-    return "can't get config"
-  }
+  return !parsed
+    ? "can't get config"
+    : Id.of(parsed).fold(
+        ([_, user, password, db]) => `starting ${db}, ${user}, ${password}`
+      )
 }
 
 const toUpperCase = x => x.toUpperCase()
 const exclamation = x => x.concat("!")
 const emphatize = x => Fn(toUpperCase).map(exclamation).run(x)
+const _emphatize = x =>
+  Fn(toUpperCase)
+    .chain(upper => Fn(_ => exclamation(upper)))
+    .run(x)
 const doubleEmphatize = x =>
   Fn(toUpperCase)
     .concat(Fn(exclamation))
     .map(x => x.slice(2))
     .run(x)
+const _emphatize2 = x =>
+  Fn(toUpperCase)
+    .chain(upper => Fn(x => [exclamation(upper), x]))
+    .run(x)
+const fnMultipleArgs = (x, y) =>
+  Fn.of(x)
+    .map(toUpperCase)
+    .chain(upper =>
+      Fn(({ host, port }) => `${upper} ${toUpperCase(host)}:${port}`)
+    )
+    .run(y)
 
-test("Fn works")(emphatize, () => "HOLA!")("HOLA!")("hola")
+test("Fn works")(emphatize, _emphatize)("HOLA!")("hola")
 test("Fn doubleEmphatize works")(doubleEmphatize, () => "LAhola!")("LAhola!")(
-  "this tests will fail"
+  "hola"
 )
-
+test("Fn propagates the original value")(_emphatize2, () => ["HOLA!", "hola"])([
+  "HOLA!",
+  "hola",
+])("hola")
+test("Fn can handle two arguments")(
+  fnMultipleArgs,
+  () => "APP RUNNING IN LOCALHOST:5000"
+)("APP RUNNING IN LOCALHOST:5000")("app running in", {
+  host: "localhost",
+  port: 5000,
+})

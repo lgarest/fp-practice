@@ -1,7 +1,8 @@
 {
   "extends": ["eslint:recommended", "plugin:import/errors", "prettier"],
   "rules": {
-    "no-console": 1
+    "no-console": 1,
+    "no-unused-vars": ["error", {"varsIgnorePattern": "^_","argsIgnorePattern": "^_" }]
   },
   "plugins": ["import"],
   "parserOptions": {
@@ -15,4 +16,3 @@
     "node": true
   }
 }
-

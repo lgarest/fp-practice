@@ -10,9 +10,9 @@ Id.of = x => Id(x)
 
 const Left = x => ({
   x,
-  map: () => Left(x),
+  map: _ => Left(x),
   fold: f => f(x),
-  chain: () => Left(x),
+  chain: _ => Left(x),
   concat: o => Left(x.concat(o.x)),
   toString: () => `Left(${x})`,
 })
@@ -69,9 +69,11 @@ const tryCatch = f => {
 
 const Fn = run => ({
   run,
+  chain: f => Fn(x => f(run(x)).run(x)),
   map: f => Fn(x => f(run(x))),
   concat: other => Fn(x => run(x).concat(other.run(x))),
 })
+Fn.of = x => Fn(() => x)
 
 const types = {
   test,
