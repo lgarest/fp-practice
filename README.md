@@ -1,6 +1,6 @@
 # FP-Practice
 
-![Node.js CI](https://github.com/lgarest/fp-practice/workflows/Node.js%20CI/badge.svg)
+![Node.js CI](https://github.com/lgarest/fp-practice/actions?query=workflow%3A%22Node.js+CI%22)
 
 ## IMPORTANT: _This project is for educational purposes only_
 
