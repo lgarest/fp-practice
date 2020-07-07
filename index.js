@@ -95,8 +95,14 @@ const Endo = run => ({
 Endo.of = x => Endo(x)
 Endo.empty = () => Endo(x => x)
 
+// Types equivalences
 // (acc, x) -> acc
+// (x, acc) -> acc
+// x -> acc -> acc
+// x -> Endo(acc -> acc)
+// Fn(x -> Endo(acc -> acc))
 const Reducer = run => ({
+  // (acc, x) -> acc
   run,
   concat: other => Reducer((acc, x) => other.run(run(acc, x), x)),
   contramap: f => Reducer((acc, x) => run(acc, f(x))),

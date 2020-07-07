@@ -307,20 +307,32 @@ const loginHandler = (state, payload) =>
 const setPrefsHandler = (state, payload) =>
   payload.prefs ? { ...state, prefs: payload.prefs } : state
 
+const curryLoginHandler = payload => state =>
+  payload.email
+    ? { ...state, loggedIn: checkCreds(payload.email, payload.pass) }
+    : state
+const currySetPrefsHandler = payload => state =>
+  payload.prefs ? { ...state, prefs: payload.prefs } : state
 // Can we written as:
 // const reducer = List(loginHandler, setPrefsHandler)
 //  .foldMap(Reducer, Reducer.empty())
 const reducer = Reducer(loginHandler).concat(Reducer(setPrefsHandler))
+// Instead of using Reducer, using Fn
+const reducer2 = Fn(curryLoginHandler)
+  .map(Endo)
+  .concat(Fn(currySetPrefsHandler).map(Endo))
 
 const state = { loggedIn: false, prefs: {} }
 const payload = { email: "admin", pass: "123", prefs: { bgColor: "#ddd" } }
 
 const usingReducer = ({ _state, _payload }) => reducer.run(_state, _payload)
+const usingReducer2 = ({ _state, _payload }) =>
+  reducer2.run(_payload).run(_state)
 const expected = JSON.stringify({ loggedIn: true, prefs: { bgColor: "#ddd" } })
 
 test("Reducer works")(
   (...args) => JSON.stringify(usingReducer(...args)),
-  () => expected
+  (...args) => JSON.stringify(usingReducer2(...args.reverse()))
 )(expected)({
   _state: state,
   _payload: payload,
