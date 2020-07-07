@@ -4,7 +4,6 @@ const errorFn = (testCounter, msg, result1, result2, res) => {
   console.log(`  ❌ Got: ${result1} === ${result2}`)
   console.log(`     -> Expected ${res}`)
 }
-
 let testCounter = 0
 const test = msg => (f, j) => res => (...args) => {
   const result1 = f(...args)
@@ -17,6 +16,7 @@ const test = msg => (f, j) => res => (...args) => {
     : errorFn(testCounter, msg, result1, result2, res)
 }
 
+// Identity monad
 const Id = x => ({
   x,
   map: f => Id(f(x)),
@@ -67,6 +67,9 @@ const tryCatch = f => {
   }
 }
 
+// ---- Function modelling
+
+// Functors: they can only map
 const Fn = run => ({
   run,
   chain: f => Fn(x => f(run(x)).run(x)),
@@ -76,14 +79,55 @@ const Fn = run => ({
 Fn.ask = Fn(x => x)
 Fn.of = x => Fn(() => x)
 
+// ---- Contravariant functors
+// They have the ability to contramap
+
+const Endo = run => ({
+  // Called after endomorphism
+  // Only works with types a -> a
+  // Will compose as its concatenation behaviour
+  // It is not a functor because using map we could change it's type
+  //    therefore, it doesn't have the `map` method
+  run,
+  concat: other => Endo(x => run(other.run(x))),
+  contramap: fn => Endo(x => run(fn(x))),
+})
+Endo.of = x => Endo(x)
+Endo.empty = () => Endo(x => x)
+
+// (acc, x) -> acc
+const Reducer = run => ({
+  run,
+  concat: other =>
+    Reducer((acc, x) =>
+      run(acc.concat(other.acc), x).concat(other.run(acc, x))
+    ),
+  contramap: f => Reducer((acc, x) => run(acc, f(x))),
+})
+
+const Predicate = run => ({
+  run,
+  concat: other => Predicate(x => run(x) && other.run(x)),
+  contramap: fn => Predicate(x => run(fn(x))),
+})
+Predicate.of = run => Predicate(run)
+
+// ---- Profunctors
+// They can contramap and map, and therefore can change the
+//    'input' and the 'output' as a connector functors
+
+// ---- Exports
 const types = {
-  test,
+  Endo,
+  Fn,
   Id,
   Left,
   Right,
   fromNullable,
+  test,
   tryCatch,
-  Fn,
+  Reducer,
+  Predicate,
 }
 
 module.exports = types

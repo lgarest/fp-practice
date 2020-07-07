@@ -14,5 +14,8 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.20.2",
     "prettier": "^2.0.5"
+  },
+  "dependencies": {
+    "crocks": "^0.12.4"
   }
 }

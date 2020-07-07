@@ -1,4 +1,17 @@
-const { Id, test, Left, Right, fromNullable, tryCatch, Fn } = require("./index")
+const {
+  Id,
+  test,
+  Left,
+  Right,
+  fromNullable,
+  tryCatch,
+  Fn,
+  Endo,
+  Reducer,
+  Predicate,
+} = require("./index.js")
+
+const { List } = require("crocks")
 
 const nextCharForNumberString = str => {
   const trimmed = str.trim()
@@ -272,3 +285,53 @@ test("Fn can handle two arguments")(fnMultipleArgs, fnMultipleArgs2)(
   host: "localhost",
   port: 5000,
 })
+
+// --- Endo ---
+const _usingEndo = x =>
+  [toUpperCase, exclamation]
+    .reduce((a, b) => Endo.of(b).concat(a), Endo.empty(""))
+    .run(x)
+
+const _usingEndo2 = x =>
+  List([toUpperCase, exclamation]).foldMap(Endo, Endo.empty("")).run(x)
+
+test("Endo works")(_usingEndo, _usingEndo2)("HELLO!")("hello")
+
+// --- Reducer ---
+// @TODO: improve Reducer's implementation
+// const usingReducer = x => Reducer((acc, y) => acc + y).run(0, x)
+
+// test("Reducer works")(usingReducer, () => 6)(6)([1, 2, 3])
+
+// ---- Predicate ----
+const data = [
+  { name: "Batman", desc: "A brawler superhero that lives in a city" },
+  { name: "Spiderman", desc: "A crawling superhero that lives in a city" },
+  {
+    name: "Superman",
+    desc: "Born superhero, trying to fit into the human world",
+  },
+]
+
+const cityReg = x => x.match(/city/gi)
+const manReg = x => x.match(/man/gi)
+const brawlerReg = x => x.match(/brawler/gi)
+
+const manPredicate = Predicate(manReg).contramap(x => x.name)
+const cityPredicate = Predicate(cityReg).contramap(x => x.desc)
+const brawlerPredicate = Predicate(brawlerReg).contramap(x => x.desc)
+
+// const superPred = Predicate(manReg).contramap(x => x.name)
+//   .concat(Predicate(cityReg).contramap(x => x.desc))
+//   .concat(Predicate(brawlerReg).contramap(x => x.desc))
+const superPred = manPredicate.concat(cityPredicate).concat(brawlerPredicate)
+
+const _usingPred = _data => _data.filter(superPred.run)[0].name
+
+const _usingPred2 = _data =>
+  _data
+    .filter(x => manReg(x.name))
+    .filter(x => cityReg(x.desc))
+    .filter(x => brawlerReg(x.desc))[0].name
+
+test("Predicate works")(_usingPred, _usingPred2)("Batman")(data)
