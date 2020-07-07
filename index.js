@@ -98,19 +98,17 @@ Endo.empty = () => Endo(x => x)
 // (acc, x) -> acc
 const Reducer = run => ({
   run,
-  concat: other =>
-    Reducer((acc, x) =>
-      run(acc.concat(other.acc), x).concat(other.run(acc, x))
-    ),
+  concat: other => Reducer((acc, x) => other.run(run(acc, x), x)),
   contramap: f => Reducer((acc, x) => run(acc, f(x))),
 })
+Reducer.empty = () => Reducer(() => {})
 
-const Predicate = run => ({
+const Pred = run => ({
   run,
-  concat: other => Predicate(x => run(x) && other.run(x)),
-  contramap: fn => Predicate(x => run(fn(x))),
+  concat: other => Pred(x => run(x) && other.run(x)),
+  contramap: fn => Pred(x => run(fn(x))),
 })
-Predicate.of = run => Predicate(run)
+Pred.of = run => Pred(run)
 
 // ---- Profunctors
 // They can contramap and map, and therefore can change the
@@ -127,7 +125,7 @@ const types = {
   test,
   tryCatch,
   Reducer,
-  Predicate,
+  Pred,
 }
 
 module.exports = types

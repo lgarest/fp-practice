@@ -8,7 +8,7 @@ const {
   Fn,
   Endo,
   Reducer,
-  Predicate,
+  Pred,
 } = require("./index.js")
 
 const { List } = require("crocks")
@@ -298,12 +298,35 @@ const _usingEndo2 = x =>
 test("Endo works")(_usingEndo, _usingEndo2)("HELLO!")("hello")
 
 // --- Reducer ---
-// @TODO: improve Reducer's implementation
-// const usingReducer = x => Reducer((acc, y) => acc + y).run(0, x)
 
-// test("Reducer works")(usingReducer, () => 6)(6)([1, 2, 3])
+const checkCreds = (email, pass) => email == "admin" && pass == "123"
+const loginHandler = (state, payload) =>
+  payload.email
+    ? { ...state, loggedIn: checkCreds(payload.email, payload.pass) }
+    : state
+const setPrefsHandler = (state, payload) =>
+  payload.prefs ? { ...state, prefs: payload.prefs } : state
 
-// ---- Predicate ----
+// Can we written as:
+// const reducer = List(loginHandler, setPrefsHandler)
+//  .foldMap(Reducer, Reducer.empty())
+const reducer = Reducer(loginHandler).concat(Reducer(setPrefsHandler))
+
+const state = { loggedIn: false, prefs: {} }
+const payload = { email: "admin", pass: "123", prefs: { bgColor: "#ddd" } }
+
+const usingReducer = ({ _state, _payload }) => reducer.run(_state, _payload)
+const expected = JSON.stringify({ loggedIn: true, prefs: { bgColor: "#ddd" } })
+
+test("Reducer works")(
+  (...args) => JSON.stringify(usingReducer(...args)),
+  () => expected
+)(expected)({
+  _state: state,
+  _payload: payload,
+})
+
+// ---- Pred ----
 const data = [
   { name: "Batman", desc: "A brawler superhero that lives in a city" },
   { name: "Spiderman", desc: "A crawling superhero that lives in a city" },
@@ -317,14 +340,14 @@ const cityReg = x => x.match(/city/gi)
 const manReg = x => x.match(/man/gi)
 const brawlerReg = x => x.match(/brawler/gi)
 
-const manPredicate = Predicate(manReg).contramap(x => x.name)
-const cityPredicate = Predicate(cityReg).contramap(x => x.desc)
-const brawlerPredicate = Predicate(brawlerReg).contramap(x => x.desc)
+const manPred = Pred(manReg).contramap(x => x.name)
+const cityPred = Pred(cityReg).contramap(x => x.desc)
+const brawlerPred = Pred(brawlerReg).contramap(x => x.desc)
 
-// const superPred = Predicate(manReg).contramap(x => x.name)
-//   .concat(Predicate(cityReg).contramap(x => x.desc))
-//   .concat(Predicate(brawlerReg).contramap(x => x.desc))
-const superPred = manPredicate.concat(cityPredicate).concat(brawlerPredicate)
+// const superPred = Pred(manReg).contramap(x => x.name)
+//   .concat(Pred(cityReg).contramap(x => x.desc))
+//   .concat(Pred(brawlerReg).contramap(x => x.desc))
+const superPred = manPred.concat(cityPred).concat(brawlerPred)
 
 const _usingPred = _data => _data.filter(superPred.run)[0].name
 
@@ -334,4 +357,4 @@ const _usingPred2 = _data =>
     .filter(x => cityReg(x.desc))
     .filter(x => brawlerReg(x.desc))[0].name
 
-test("Predicate works")(_usingPred, _usingPred2)("Batman")(data)
+test("Pred works")(_usingPred, _usingPred2)("Batman")(data)
